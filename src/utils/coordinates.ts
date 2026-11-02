@@ -89,11 +89,12 @@ export function editCoordinate(
   };
 }
 
+// Pedro follows the cropped image's tile corner; centered frames follow its center seam.
 export function gridOrigin(settings: CoordinateSettings): number {
   return settings.coordinateSystem === "ftc" ||
     settings.coordinateSystem === "ftc-inverted"
     ? FIELD_INCHES / 2
-    : 0;
+    : (FIELD_INCHES - 6 * DEFAULT_TILE_SIZE) / 2;
 }
 
 // Existing grid presets (1, 3, 6, 12 inches) become fractions of a tile.

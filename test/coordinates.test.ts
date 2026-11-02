@@ -95,6 +95,42 @@ describe("coordinate frames", () => {
       expect(inchesPerUnit({ distanceUnit: "tiles", tileSize })).toBe(24);
   });
 
+  it("aligns Pedro grid and snapping with the cropped image seams", () => {
+    const seams = [22.75, 46.75, 70.75, 94.75, 118.75];
+    expect(gridOrigin({})).toBe(-1.25);
+    for (const distanceUnit of ["inches", "tiles"] as const) {
+      const settings = { coordinateSystem: "pedro" as const, distanceUnit };
+      for (const size of [1, 3, 6, 12]) {
+        const spacing = gridSpacing(size, settings);
+        const origin = gridOrigin(settings);
+        for (const seam of seams) {
+          expect((seam - origin) / spacing).toBeCloseTo(
+            Math.round((seam - origin) / spacing),
+          );
+          expect(
+            snapPoint(
+              { x: seam + 0.1, y: seam - 0.1 },
+              { snapToGrid: true, showGrid: true, gridSize: spacing, origin },
+            ),
+          ).toEqual({ x: seam, y: seam });
+        }
+      }
+    }
+    // Callers without an explicit frame use Pedro's seam alignment too.
+    expect(
+      snapPoint(
+        { x: 24, y: 48 },
+        { snapToGrid: true, showGrid: true, gridSize: 12 },
+      ),
+    ).toEqual({ x: 22.75, y: 46.75 });
+    expect(
+      snapPoint(
+        { x: -10, y: 155 },
+        { snapToGrid: true, showGrid: true, gridSize: 12 },
+      ),
+    ).toEqual({ x: 0, y: 141.5 });
+  });
+
   it("snaps on the centered tile grid and clamps at field edges", () => {
     const settings: CoordinateSettings = {
       coordinateSystem: "ftc",

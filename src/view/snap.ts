@@ -1,3 +1,4 @@
+import { gridOrigin } from "../utils/coordinates";
 import type { BasePoint } from "../types";
 import { clampFieldCoordinate } from "../utils/math";
 
@@ -11,7 +12,7 @@ export interface GridSnapOptions {
 /** Clamp into the field, snapping to the nearest grid intersection when snapping is on. */
 export function snapPoint(
   point: BasePoint,
-  { snapToGrid, showGrid, gridSize, origin = 0 }: GridSnapOptions,
+  { snapToGrid, showGrid, gridSize, origin = gridOrigin({}) }: GridSnapOptions,
 ): BasePoint {
   const snap = (value: number) =>
     snapToGrid && showGrid && gridSize > 0

@@ -29,6 +29,8 @@ Headings are counterclockwise-positive degrees. Choose the frame appropriate to 
 
 **Inches per Tile defaults to 24 and is editable.** FIRST describes FTC tiles as nominally approximately 24 × 24 inches; this is not a guarantee of exact seam-to-seam spacing. Tile sizes vary, so measure your assembled field and adjust this value if needed. Previously saved tile-size preferences are preserved. The visualizer retains its 141.5-inch field model, centered at 70.75 inches; tile units do not redefine the field boundary. See [FIRST Competition Manual §9.2](https://ftc-resources.firstinspires.org/ftc/archive/2027/game/manual-09) and [Field Setup Guide §7.2](https://ftc-resources.firstinspires.org/ftc/field/eventfieldguide).
 
+With the default 24-inch tiles, the grid and snapping align with the field-image seams in every frame. Pedro uses the image’s tile-corner offset of −1.25 inches; FTC frames use the center seam at 70.75 inches.
+
 Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame, units, or tile size changes the displayed numbers, never the existing physical path. Saved `.pp.json` projects retain these preferences alongside canonical Pedro-inch geometry.
 
 ## Export Safely
