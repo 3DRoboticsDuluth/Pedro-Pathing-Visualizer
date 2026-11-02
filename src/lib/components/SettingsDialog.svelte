@@ -149,9 +149,11 @@
           min={0.001}
           step={0.125}
           onInput={(raw) => {
-            prefs.tileSize = normalizeCoordinateSettings({
+            const tileSize = normalizeCoordinateSettings({
               tileSize: Number(raw),
             }).tileSize;
+            project.changeTileSize(prefs, tileSize);
+            prefs.tileSize = tileSize;
           }}
         />
         <p class="text-xs text-body">
@@ -172,7 +174,8 @@
           describes 24 in as nominal. Calibrate to your own field.
         </p>
         <p class="text-xs text-body">
-          Changes the displayed frame and units without moving paths. Robot
+          Switching frame or units preserves physical paths. Changing inches per
+          tile with Tiles selected preserves tile coordinates instead. Robot
           dimensions and motion settings remain in inches. Java and Kotlin
           exports always use Pedro coordinates and inches. Untouched built-in
           obstacle outlines follow calibration; editing their vertices makes

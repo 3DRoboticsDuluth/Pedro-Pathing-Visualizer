@@ -31,9 +31,9 @@ Headings are counterclockwise-positive degrees. Choose the frame appropriate to 
 
 The calibration controls the physical scale of the field image, grid, snapping, and tile coordinates together. In a centered FTC frame, `(2, 2)` at 23.5 inches per tile is 47 inches along each axis and lands on the matching visible seam intersection. Grid presets subdivide a tile, so switching between inches and tiles changes labels rather than the physical grid or image scale. Images must contain the full six-by-six tile layout, including custom images.
 
-The inherited 141.5-inch field boundary stays fixed for project compatibility, centered at 70.75 inches. The six-tile image is centered inside it and clipped when larger; when smaller, a narrow margin surrounds the image. This is a compatibility model, not an exact reconstruction of every physical perimeter. Calibrating the background does not transform paths, field points, or custom obstacle geometry. Untouched built-in outlines follow the same centered image scale, and collision detection uses those exact displayed polygons.
+The inherited 141.5-inch field boundary stays fixed for project compatibility, centered at 70.75 inches. The six-tile image is centered inside it and clipped when larger; when smaller, a narrow margin surrounds the image. This is a compatibility model, not an exact reconstruction of every physical perimeter. With Inches selected, calibration preserves paths, field points, and custom obstacle geometry in physical inches. With Tiles selected, changing inches per tile preserves their tile coordinates in the selected frame, including control points, through points, and facing-point targets. Untouched built-in outlines follow the same centered image scale, and collision detection uses those exact displayed polygons.
 
-Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame, units, or tile size changes the displayed numbers, never the existing physical path. Saved `.pp.json` projects retain these preferences alongside canonical Pedro-inch geometry.
+Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame or units preserves the physical path. Changing tile size while Tiles is selected preserves tile coordinates and updates the underlying inch positions; with Inches selected, physical positions stay fixed. Robot dimensions and motion settings are never rescaled. Saved `.pp.json` projects retain these preferences alongside canonical Pedro-inch geometry.
 
 ## Why the default is 23.5 inches
 
@@ -58,7 +58,7 @@ The drawn outline and collision engine share one calibrated polygon list; the pa
 
 ## Export Safely
 
-The points-array export uses the selected coordinates and distance units. Java and Kotlin robot-code exports intentionally remain in **Pedro coordinates and inches**, so changing display settings does not silently alter generated robot motion. Do not treat a tiles/FTC points array as Pedro-inch coordinates without conversion.
+The points-array export uses the selected coordinates and distance units. Java and Kotlin robot-code exports intentionally remain in **Pedro coordinates and inches**, so exports use the recalibrated inch positions after a tile-size change in Tiles mode. Do not treat a tiles/FTC points array as Pedro-inch coordinates without conversion.
 
 The centered frames use half this visualizer's 141.5-inch field, not the 72-inch offset used by some Pedro FTC-coordinate conversions. If using those SDK conversion helpers directly, reconcile the field-center convention rather than copying displayed coordinates without checking it. Test start pose, axes, heading, and a short path on the physical robot before autonomous use.
 

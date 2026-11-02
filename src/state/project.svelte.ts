@@ -1,3 +1,4 @@
+import { preserveTileCoordinates } from "../model/tileCalibration";
 import { calibrateFieldShapes } from "../config/defaults";
 import {
   DEFAULT_TILE_SIZE,
@@ -113,6 +114,24 @@ export class ProjectStore {
   calibrateField(settings: CoordinateSettings) {
     this.#tileSize = inchesPerTile(settings);
     this.doc = this.#calibrated(this.doc);
+  }
+
+  /** Settings calibration is not a path edit; keep undo/redo in the new units too. */
+  changeTileSize(before: CoordinateSettings, tileSize: number) {
+    const after = { ...before, tileSize };
+    if (inchesPerTile(before) === inchesPerTile(after)) return;
+    this.commit();
+    this.#tileSize = inchesPerTile(after);
+    if (before.distanceUnit === "tiles") {
+      const transform = (doc: ProjectDoc) =>
+        this.#calibrated(preserveTileCoordinates(doc, before, after));
+      this.#undo = this.#undo.map(transform);
+      this.#redo = this.#redo.map(transform);
+      this.doc = transform(this.doc);
+    } else {
+      this.doc = this.#calibrated(this.doc);
+    }
+    this.#lastCoalesced = null;
   }
 
   #calibrated(doc: ProjectDoc): ProjectDoc {

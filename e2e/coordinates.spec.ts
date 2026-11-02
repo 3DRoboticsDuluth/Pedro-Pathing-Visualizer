@@ -159,7 +159,7 @@ test("FTC two-by-two tiles lands on the image seams and grid after calibration",
   await page.getByRole("button", { name: "Close", exact: true }).click();
   expect(await image.boundingBox()).toEqual(beforeUnits);
   await checkAlignment();
-  // Recalibration changes the background and tile representation, never existing geometry.
+  // Recalibration in Tiles mode preserves the point on the same image seam.
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByLabel("Distance units").selectOption("tiles");
   await page.getByLabel("Inches per tile", { exact: true }).fill("24");
@@ -168,10 +168,10 @@ test("FTC two-by-two tiles lands on the image seams and grid after calibration",
     .poll(async () => (await snapshot(page)).coordinates?.tileSize)
     .toBe(24);
   expect((await snapshot(page)).lines[0].endPoint).toEqual({
-    x: 117.75,
-    y: 23.75,
+    x: 118.75,
+    y: 22.75,
   });
-  await page.getByLabel("End X", { exact: true }).fill("2");
-  await page.getByLabel("End Y", { exact: true }).fill("2");
+  await expect(page.getByLabel("End X", { exact: true })).toHaveValue("2");
+  await expect(page.getByLabel("End Y", { exact: true })).toHaveValue("2");
   await checkAlignment();
 });
