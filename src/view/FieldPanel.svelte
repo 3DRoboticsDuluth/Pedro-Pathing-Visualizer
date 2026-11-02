@@ -580,6 +580,7 @@
                 pointer-events="none"
               />
               <path
+                data-testid="collision-footprint"
                 d={polylinePath(mark.footprint, true)}
                 fill="none"
                 stroke={COLLISION_COLOR}

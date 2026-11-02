@@ -51,6 +51,12 @@
 </script>
 
 <div class="flex flex-col gap-3">
+  {#if shape.fieldCalibration}
+    <p class="text-xs text-body">
+      Built-in outline: follows tile calibration. Editing a vertex makes it
+      custom.
+    </p>
+  {/if}
   <div class="flex items-end gap-2">
     <label class="flex min-w-0 flex-1 flex-col gap-1">
       <span class={labelClass}>Name</span>

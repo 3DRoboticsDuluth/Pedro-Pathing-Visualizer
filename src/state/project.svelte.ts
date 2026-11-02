@@ -1,3 +1,9 @@
+import { calibrateFieldShapes } from "../config/defaults";
+import {
+  DEFAULT_TILE_SIZE,
+  inchesPerTile,
+  type CoordinateSettings,
+} from "../utils/coordinates";
 import { getContext, setContext } from "svelte";
 import type { ProjectDoc } from "../io";
 import type { Command } from "../model/commands";
@@ -17,6 +23,7 @@ export class ProjectStore {
   #redo = $state.raw<ProjectDoc[]>([]);
   #saved = $state.raw<ProjectDoc>()!;
   #transactionBase: ProjectDoc | null = null;
+  #tileSize = DEFAULT_TILE_SIZE;
   #lastCoalesced: { key: string; at: number } | null = null;
 
   canUndo = $derived(this.#undo.length > 0);
@@ -24,8 +31,9 @@ export class ProjectStore {
   dirty = $derived(this.doc !== this.#saved);
 
   constructor(doc: ProjectDoc) {
-    this.doc = doc;
-    this.#saved = doc;
+    this.#tileSize = inchesPerTile(doc.coordinates ?? {});
+    this.doc = this.#calibrated(doc);
+    this.#saved = this.doc;
   }
 
   /**
@@ -37,7 +45,7 @@ export class ProjectStore {
       this.preview(command);
       return;
     }
-    const next = command(this.doc);
+    const next = this.#calibrated(command(this.doc));
     if (next === this.doc) return;
 
     const now = Date.now();
@@ -56,7 +64,7 @@ export class ProjectStore {
   /** Show an edit without recording it; `commit` records everything since as one step. */
   preview(command: Command) {
     this.#transactionBase ??= this.doc;
-    this.doc = command(this.doc);
+    this.doc = this.#calibrated(command(this.doc));
   }
 
   commit() {
@@ -67,7 +75,8 @@ export class ProjectStore {
   }
 
   cancel() {
-    if (this.#transactionBase) this.doc = this.#transactionBase;
+    if (this.#transactionBase)
+      this.doc = this.#calibrated(this.#transactionBase);
     this.#transactionBase = null;
   }
 
@@ -77,7 +86,7 @@ export class ProjectStore {
     if (!previous) return;
     this.#undo = this.#undo.slice(0, -1);
     this.#redo = [...this.#redo, this.doc];
-    this.doc = previous;
+    this.doc = this.#calibrated(previous);
   }
 
   redo() {
@@ -86,7 +95,7 @@ export class ProjectStore {
     if (!next) return;
     this.#redo = this.#redo.slice(0, -1);
     this.#undo = [...this.#undo, this.doc];
-    this.doc = next;
+    this.doc = this.#calibrated(next);
   }
 
   /** Open a different document. History starts over. */
@@ -95,8 +104,22 @@ export class ProjectStore {
     this.#lastCoalesced = null;
     this.#undo = [];
     this.#redo = [];
-    this.doc = doc;
-    if (options.saved ?? true) this.#saved = doc;
+    if (doc.coordinates) this.#tileSize = inchesPerTile(doc.coordinates);
+    this.doc = this.#calibrated(doc);
+    if (options.saved ?? true) this.#saved = this.doc;
+  }
+
+  /** A display calibration follows built-ins, without moving paths or custom obstacles. */
+  calibrateField(settings: CoordinateSettings) {
+    this.#tileSize = inchesPerTile(settings);
+    this.doc = this.#calibrated(this.doc);
+  }
+
+  #calibrated(doc: ProjectDoc): ProjectDoc {
+    const shapes = calibrateFieldShapes(doc.shapes, {
+      tileSize: this.#tileSize,
+    });
+    return shapes === doc.shapes ? doc : { ...doc, shapes };
   }
 
   markSaved() {

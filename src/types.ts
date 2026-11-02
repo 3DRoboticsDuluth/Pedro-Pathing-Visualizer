@@ -167,6 +167,8 @@ export type RobotConfig = Pick<
 >;
 
 export interface Shape {
+  /** Untouched built-in outlines follow field-image calibration. Vertex edits detach them. */
+  fieldCalibration?: { fieldMap: string; tileSize: number };
   id: string;
   name?: string;
   vertices: BasePoint[];

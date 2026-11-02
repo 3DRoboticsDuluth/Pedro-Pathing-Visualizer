@@ -67,6 +67,12 @@ export class ProjectFiles {
         ...normalizeCoordinateSettings(doc.coordinates),
       };
     }
+    const fields = doc.shapes.flatMap((shape) =>
+      shape.fieldCalibration ? [shape.fieldCalibration.fieldMap] : [],
+    );
+    if (fields.length > 0 && fields.every((field) => field === fields[0])) {
+      this.#prefs.value = { ...this.#prefs.value, fieldMap: fields[0] };
+    }
     this.#project.load(doc, options);
     activePaths.set(doc.activePaths);
   }
@@ -88,6 +94,7 @@ export class ProjectFiles {
       createDefaultProject(
         this.#project.doc.robot,
         this.#prefs.settings.fieldMap,
+        this.#prefs.settings,
       ),
     );
     currentFilePath.set(null);

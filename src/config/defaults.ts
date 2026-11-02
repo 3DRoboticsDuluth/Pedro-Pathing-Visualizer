@@ -5,7 +5,12 @@ import type {
   Settings,
   BasePoint,
 } from "../types";
-import { DEFAULT_TILE_SIZE, FIELD_INCHES } from "../utils/coordinates";
+import {
+  DEFAULT_TILE_SIZE,
+  FIELD_INCHES,
+  inchesPerTile,
+  type CoordinateSettings,
+} from "../utils/coordinates";
 import { makePathId } from "../utils/ids";
 
 /**
@@ -138,8 +143,92 @@ const FIELD_OBSTACLES: Record<string, () => Shape[]> = {
   "biobuzz.webp": biobuzzObstacles,
 };
 
-export function getDefaultShapes(fieldMap: string): Shape[] {
-  return FIELD_OBSTACLES[fieldMap]?.() ?? [];
+/** Templates were traced against the upstream 24-inch image scale. */
+export const OBSTACLE_REFERENCE_TILE_SIZE = 24;
+
+function calibratedVertices(
+  template: Shape,
+  settings: CoordinateSettings,
+): BasePoint[] {
+  const center = FIELD_SIZE / 2;
+  const scale = inchesPerTile(settings) / OBSTACLE_REFERENCE_TILE_SIZE;
+  const imageOffset = (FIELD_SIZE - 6 * OBSTACLE_REFERENCE_TILE_SIZE) / 2;
+  const place = (value: number) => {
+    // Wall-attached templates were clipped at the old field edge. Extend
+    // them to the image edge before recalibrating, then clip to the fixed floor.
+    const reference =
+      value === 0
+        ? imageOffset
+        : value === FIELD_SIZE
+          ? FIELD_SIZE - imageOffset
+          : value;
+    return Math.max(
+      0,
+      Math.min(FIELD_SIZE, center + (reference - center) * scale),
+    );
+  };
+  return template.vertices.map(({ x, y }) => ({ x: place(x), y: place(y) }));
+}
+
+export function getDefaultShapes(
+  fieldMap: string,
+  settings: CoordinateSettings = {},
+): Shape[] {
+  return (FIELD_OBSTACLES[fieldMap]?.() ?? []).map((shape) => ({
+    ...shape,
+    vertices: calibratedVertices(shape, settings),
+    fieldCalibration: { fieldMap, tileSize: inchesPerTile(settings) },
+  }));
+}
+
+function sameVertices(a: BasePoint[], b: BasePoint[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (point, i) =>
+        Math.abs(point.x - b[i].x) < 1e-6 && Math.abs(point.y - b[i].y) < 1e-6,
+    )
+  );
+}
+
+/** Recalibrate only linked or exactly recognized legacy built-ins; custom geometry stays physical. */
+export function calibrateFieldShapes(
+  shapes: Shape[],
+  settings: CoordinateSettings,
+): Shape[] {
+  const tileSize = inchesPerTile(settings);
+  const templates = Object.entries(FIELD_OBSTACLES).flatMap(
+    ([fieldMap, create]) => create().map((shape) => ({ fieldMap, shape })),
+  );
+  let changed = false;
+  const next = shapes.map((shape) => {
+    const link = shape.fieldCalibration;
+    const match = templates.find(
+      (entry) =>
+        entry.shape.id === shape.id &&
+        (!link || entry.fieldMap === link.fieldMap),
+    );
+    if (!match) return shape;
+    const expected =
+      link && Number.isFinite(link.tileSize) && link.tileSize > 0
+        ? calibratedVertices(match.shape, { tileSize: link.tileSize })
+        : match.shape.vertices;
+    if (!sameVertices(shape.vertices, expected)) {
+      if (!link) return shape;
+      // A file edited outside the app must not silently regain its template geometry.
+      const { fieldCalibration: _link, ...custom } = shape;
+      changed = true;
+      return custom;
+    }
+    if (link?.tileSize === tileSize) return shape;
+    changed = true;
+    return {
+      ...shape,
+      vertices: calibratedVertices(match.shape, settings),
+      fieldCalibration: { fieldMap: match.fieldMap, tileSize },
+    };
+  });
+  return changed ? next : shapes;
 }
 
 const HIVE_CENTER = { x: 71.25, y: 70.7 };

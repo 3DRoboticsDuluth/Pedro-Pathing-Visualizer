@@ -39,7 +39,7 @@
   }
 
   function resetObstacles() {
-    project.apply(setShapes(getDefaultShapes(settings.fieldMap)));
+    project.apply(setShapes(getDefaultShapes(settings.fieldMap, settings)));
   }
 </script>
 

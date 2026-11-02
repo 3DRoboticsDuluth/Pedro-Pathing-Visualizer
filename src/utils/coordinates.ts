@@ -2,6 +2,7 @@ import type { BasePoint } from "../types";
 
 export type CoordinateSystem = "pedro" | "ftc" | "ftc-inverted";
 export type DistanceUnit = "inches" | "tiles";
+/** Rounded from the 23.502083-inch repeat in FIRST’s BIOBUZZ STEP; see docs/ftc-cad-measurements.json. */
 export const DEFAULT_TILE_SIZE = 23.5;
 export const FIELD_INCHES = 141.5;
 

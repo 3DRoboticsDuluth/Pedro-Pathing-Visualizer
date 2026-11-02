@@ -1,4 +1,5 @@
 import {
+  calibrateFieldShapes,
   getDefaultPaths,
   getDefaultShapes,
   getDefaultStartPoint,
@@ -28,7 +29,7 @@ import {
   type CoordinateSettings,
 } from "../utils/coordinates";
 
-export const PROJECT_VERSION = "2.1.0";
+export const PROJECT_VERSION = "2.2.0";
 
 export interface ProjectDoc {
   startPoint: StartPose;
@@ -90,7 +91,10 @@ export function projectFromJson(
   const doc: ProjectDoc = {
     startPoint: normalizeStartPose(project.startPoint as StoredStartPose),
     lines,
-    shapes: normalizeShapes(project.shapes),
+    shapes: calibrateFieldShapes(
+      normalizeShapes(project.shapes),
+      normalizeCoordinateSettings(project.coordinates),
+    ),
     sequence: deriveSequence(project, lines),
     fieldPoints: normalizeFieldPoints(project),
     robot: normalizeRobotConfig(project.robot, robotFallback),
@@ -118,15 +122,19 @@ export function serializeProject(
 export function createDefaultProject(
   robot: RobotConfig,
   fieldMap: string,
+  coordinates?: CoordinateSettings,
 ): ProjectDoc {
   const lines = normalizePaths(getDefaultPaths());
   return {
     startPoint: getDefaultStartPoint(),
     lines,
-    shapes: getDefaultShapes(fieldMap),
+    shapes: getDefaultShapes(fieldMap, coordinates),
     sequence: deriveSequence({}, lines),
     fieldPoints: [],
     robot,
+    ...(coordinates
+      ? { coordinates: normalizeCoordinateSettings(coordinates) }
+      : {}),
     activePaths: [],
   };
 }

@@ -144,7 +144,7 @@
         <NumberField
           id="tile-size"
           label="Inches per tile"
-          description="Calibrates tile coordinates, grid, and field image."
+          description="Calibrates tile coordinates, grid, image, and built-in obstacles."
           value={prefs.tileSize ?? DEFAULT_TILE_SIZE}
           min={0.001}
           step={0.125}
@@ -155,9 +155,28 @@
           }}
         />
         <p class="text-xs text-body">
+          The 23.5 in default approximates the 23.502 in assembled tile repeat
+          measured in
+          <a
+            class="underline"
+            href="https://ftc-resources.firstinspires.org/ftc/field/field-cad-step"
+            target="_blank"
+            rel="noreferrer">FIRST’s BIOBUZZ CAD</a
+          >. The
+          <a
+            class="underline"
+            href="https://ftc-resources.firstinspires.org/ftc/archive/2027/game/manual-09"
+            target="_blank"
+            rel="noreferrer">FTC manual (§9.1–9.2)</a
+          >
+          describes 24 in as nominal. Calibrate to your own field.
+        </p>
+        <p class="text-xs text-body">
           Changes the displayed frame and units without moving paths. Robot
           dimensions and motion settings remain in inches. Java and Kotlin
-          exports always use Pedro coordinates and inches.
+          exports always use Pedro coordinates and inches. Untouched built-in
+          obstacle outlines follow calibration; editing their vertices makes
+          them custom.
         </p>
       </div>
     </PanelSection>
@@ -196,7 +215,7 @@
             value={prefs.fieldMap}
             onchange={(event) => {
               prefs.fieldMap = event.currentTarget.value;
-              project.apply(setShapes(getDefaultShapes(prefs.fieldMap)));
+              project.apply(setShapes(getDefaultShapes(prefs.fieldMap, prefs)));
             }}
           >
             {#each AVAILABLE_FIELD_MAPS as field (field.value)}

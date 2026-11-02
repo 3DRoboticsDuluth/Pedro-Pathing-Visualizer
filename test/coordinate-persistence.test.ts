@@ -26,7 +26,7 @@ const coordinates = {
   tileSize: 23.625,
 } as const;
 const project = () => ({
-  ...createDefaultProject(robot, "decode.webp"),
+  ...createDefaultProject(robot, "decode.webp", coordinates),
   coordinates,
   fieldPoints: [{ x: 20, y: 30, color: "red" }],
 });
