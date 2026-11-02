@@ -60,6 +60,7 @@ test("switching frames changes numbers without moving the path", async ({
   const marker = page.locator('[aria-label="Path 1 end point"]');
   const before = await marker.boundingBox();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("button", { name: "Advanced", exact: true }).click();
   await page.getByLabel("Coordinate frame").selectOption("pedro");
   await page.getByLabel("Distance units").selectOption("inches");
   await page.getByRole("button", { name: "Close", exact: true }).click();
