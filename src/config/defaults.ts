@@ -5,7 +5,7 @@ import type {
   Settings,
   BasePoint,
 } from "../types";
-import { DEFAULT_TILE_SIZE } from "../utils/coordinates";
+import { DEFAULT_TILE_SIZE, FIELD_INCHES } from "../utils/coordinates";
 import { makePathId } from "../utils/ids";
 
 /**
@@ -21,16 +21,9 @@ export const POINT_RADIUS = 1;
 export const LINE_WIDTH = 0.57;
 /**
  * The floor inside the perimeter walls, in inches; coordinates run from 0 to
- * this. Six 24" tiles make 144", and the walls cover the outer 1.25" of the
- * edge tiles.
+ * this. This inherited coordinate boundary is retained for saved-project compatibility.
  */
-export const FIELD_SIZE = 141.5;
-export const TILE_SIZE = 24;
-/**
- * Field images show all six tiles at full size, so they extend this far past
- * the floor on every side and are cropped to it.
- */
-export const FIELD_IMAGE_OVERHANG = (6 * TILE_SIZE - FIELD_SIZE) / 2;
+export const FIELD_SIZE = FIELD_INCHES;
 /** The tile seams in every field image are drawn in this color. */
 export const FIELD_SEAM_COLOR = "#000000";
 

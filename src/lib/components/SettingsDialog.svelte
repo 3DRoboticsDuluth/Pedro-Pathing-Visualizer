@@ -144,6 +144,7 @@
         <NumberField
           id="tile-size"
           label="Inches per tile"
+          description="Calibrates tile coordinates, grid, and field image."
           value={prefs.tileSize ?? DEFAULT_TILE_SIZE}
           min={0.001}
           step={0.125}

@@ -2,7 +2,7 @@ import type { BasePoint } from "../types";
 
 export type CoordinateSystem = "pedro" | "ftc" | "ftc-inverted";
 export type DistanceUnit = "inches" | "tiles";
-export const DEFAULT_TILE_SIZE = 24;
+export const DEFAULT_TILE_SIZE = 23.5;
 export const FIELD_INCHES = 141.5;
 
 export interface CoordinateSettings {
@@ -12,7 +12,11 @@ export interface CoordinateSettings {
 }
 
 export function inchesPerUnit(settings: CoordinateSettings): number {
-  if (settings.distanceUnit !== "tiles") return 1;
+  return settings.distanceUnit === "tiles" ? inchesPerTile(settings) : 1;
+}
+
+/** Physical seam pitch, independent of the selected display units. */
+export function inchesPerTile(settings: CoordinateSettings): number {
   const size = settings.tileSize;
   return typeof size === "number" && Number.isFinite(size) && size > 0
     ? size
@@ -89,22 +93,26 @@ export function editCoordinate(
   };
 }
 
-// Pedro follows the cropped image's tile corner; centered frames follow its center seam.
+/** Six-tile images stay centered within the fixed physical field boundary. */
+export function fieldImageLayout(settings: CoordinateSettings) {
+  const size = 6 * inchesPerTile(settings);
+  return { size, offset: (FIELD_INCHES - size) / 2 };
+}
+
+// Pedro follows the calibrated image's tile corner; centered frames follow its center seam.
 export function gridOrigin(settings: CoordinateSettings): number {
   return settings.coordinateSystem === "ftc" ||
     settings.coordinateSystem === "ftc-inverted"
     ? FIELD_INCHES / 2
-    : (FIELD_INCHES - 6 * DEFAULT_TILE_SIZE) / 2;
+    : fieldImageLayout(settings).offset;
 }
 
-// Existing grid presets (1, 3, 6, 12 inches) become fractions of a tile.
+// Presets are fractions of a tile, so changing display units never moves the grid.
 export function gridSpacing(
   size: number,
   settings: CoordinateSettings,
 ): number {
-  return settings.distanceUnit === "tiles"
-    ? (size / 24) * inchesPerUnit(settings)
-    : size;
+  return (size / 24) * inchesPerTile(settings);
 }
 
 export function formatPoint(

@@ -378,6 +378,7 @@
       oncontextmenu={onContextMenu}
     >
       <FieldMapImage
+        {settings}
         src={fieldMapSrc}
         fieldMapName={settings.fieldMap}
         onSettled={() => (loadedFieldMap = fieldMapSrc)}

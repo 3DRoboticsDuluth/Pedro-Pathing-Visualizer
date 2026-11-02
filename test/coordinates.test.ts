@@ -21,6 +21,8 @@ import {
   fromDisplay,
   editCoordinate,
   inchesPerUnit,
+  inchesPerTile,
+  fieldImageLayout,
   gridOrigin,
   gridSpacing,
   type CoordinateSettings,
@@ -33,7 +35,7 @@ describe("coordinate frames", () => {
   });
 
   it("centers FTC frames and gives them opposite X directions", () => {
-    const point = { x: 70.75, y: 46.75 };
+    const point = { x: 70.75, y: 47.25 };
     expect(
       toDisplay(point, { coordinateSystem: "ftc", distanceUnit: "tiles" }),
     ).toEqual({ x: 1, y: 0 });
@@ -79,25 +81,25 @@ describe("coordinate frames", () => {
       2,
       { coordinateSystem: "ftc", distanceUnit: "tiles" },
     );
-    expect(result).toEqual({ x: 70.75, y: 22.75, locked: true });
+    expect(result).toEqual({ x: 70.75, y: 23.75, locked: true });
     expect(editCoordinate(result, "y", NaN, {})).toBe(result);
   });
 
   it("changes only the unit representation when tile size changes", () => {
-    const point = { x: 48, y: 24 };
+    const point = { x: 47, y: 23.5 };
     expect(toDisplay(point, { distanceUnit: "tiles" })).toEqual({ x: 2, y: 1 });
-    expect(toDisplay(point, { distanceUnit: "tiles", tileSize: 48 })).toEqual({
+    expect(toDisplay(point, { distanceUnit: "tiles", tileSize: 47 })).toEqual({
       x: 1,
       y: 0.5,
     });
-    expect(point).toEqual({ x: 48, y: 24 });
+    expect(point).toEqual({ x: 47, y: 23.5 });
     for (const tileSize of [0, -2, NaN, Infinity])
-      expect(inchesPerUnit({ distanceUnit: "tiles", tileSize })).toBe(24);
+      expect(inchesPerUnit({ distanceUnit: "tiles", tileSize })).toBe(23.5);
   });
 
   it("aligns Pedro grid and snapping with the cropped image seams", () => {
-    const seams = [22.75, 46.75, 70.75, 94.75, 118.75];
-    expect(gridOrigin({})).toBe(-1.25);
+    const seams = [23.75, 47.25, 70.75, 94.25, 117.75];
+    expect(gridOrigin({})).toBe(0.25);
     for (const distanceUnit of ["inches", "tiles"] as const) {
       const settings = { coordinateSystem: "pedro" as const, distanceUnit };
       for (const size of [1, 3, 6, 12]) {
@@ -120,15 +122,59 @@ describe("coordinate frames", () => {
     expect(
       snapPoint(
         { x: 24, y: 48 },
-        { snapToGrid: true, showGrid: true, gridSize: 12 },
+        { snapToGrid: true, showGrid: true, gridSize: 11.75 },
       ),
-    ).toEqual({ x: 22.75, y: 46.75 });
+    ).toEqual({ x: 23.75, y: 47.25 });
     expect(
       snapPoint(
         { x: -10, y: 155 },
         { snapToGrid: true, showGrid: true, gridSize: 12 },
       ),
     ).toEqual({ x: 0, y: 141.5 });
+  });
+
+  it("places FTC (2, 2) exactly on calibrated image seams at every supported tile scale", () => {
+    for (const tileSize of [23.5, 23.625, 24, 25]) {
+      const settings: CoordinateSettings = {
+        coordinateSystem: "ftc",
+        distanceUnit: "tiles",
+        tileSize,
+      };
+      const point = fromDisplay({ x: 2, y: 2 }, settings);
+      const layout = fieldImageLayout(settings);
+      // The fifth vertical and first horizontal seams in the six-tile image.
+      expect(point.x).toBeCloseTo(layout.offset + 5 * tileSize, 10);
+      expect(point.y).toBeCloseTo(layout.offset + tileSize, 10);
+      for (const coordinateSystem of [
+        "pedro",
+        "ftc",
+        "ftc-inverted",
+      ] as const) {
+        const inches = {
+          ...settings,
+          coordinateSystem,
+          distanceUnit: "inches" as const,
+        };
+        const tiles = { ...inches, distanceUnit: "tiles" as const };
+        expect(fieldImageLayout(inches)).toEqual(fieldImageLayout(tiles));
+        expect(inchesPerTile(inches)).toBe(tileSize);
+        expect(gridSpacing(12, inches)).toBe(gridSpacing(12, tiles));
+        for (let seam = 1; seam < 6; seam++) {
+          const value = layout.offset + seam * tileSize;
+          expect(
+            snapPoint(
+              { x: value + 0.1, y: value - 0.1 },
+              {
+                snapToGrid: true,
+                showGrid: true,
+                gridSize: gridSpacing(12, inches),
+                origin: gridOrigin(inches),
+              },
+            ),
+          ).toEqual({ x: value, y: value });
+        }
+      }
+    }
   });
 
   it("snaps on the centered tile grid and clamps at field edges", () => {
@@ -142,8 +188,8 @@ describe("coordinate frames", () => {
       gridSize: gridSpacing(12, settings),
       origin: gridOrigin(settings),
     };
-    expect(options.gridSize).toBe(12);
-    expect(snapPointToGrid(72, 83, options)).toEqual({ x: 70.75, y: 82.75 });
+    expect(options.gridSize).toBe(11.75);
+    expect(snapPointToGrid(72, 83, options)).toEqual({ x: 70.75, y: 82.5 });
     expect(snapPointToGrid(-10, 155, options)).toEqual({ x: 0, y: 141.5 });
     expect(snapPointToGrid(72, 83, { ...options, snapToGrid: false })).toEqual({
       x: 72,
@@ -152,14 +198,14 @@ describe("coordinate frames", () => {
   });
 
   it("exports selected coordinate units without changing stored geometry", () => {
-    const start = { x: 70.75, y: 46.75, headingDeg: -90 };
+    const start = { x: 70.75, y: 47.25, headingDeg: -90 };
     expect(
       generatePointsArray(start, [], {
         coordinateSystem: "ftc",
         distanceUnit: "tiles",
       }),
     ).toBe("[(1.0, 0.0)]");
-    expect(generatePointsArray(start, [])).toBe("[(70.750, 46.750)]");
+    expect(generatePointsArray(start, [])).toBe("[(70.750, 47.250)]");
     expect(start.headingDeg).toBe(-90);
   });
 
