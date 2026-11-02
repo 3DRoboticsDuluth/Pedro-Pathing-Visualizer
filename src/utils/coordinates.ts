@@ -2,7 +2,7 @@ import type { BasePoint } from "../types";
 
 export type CoordinateSystem = "pedro" | "ftc" | "ftc-inverted";
 export type DistanceUnit = "inches" | "tiles";
-export const DEFAULT_TILE_SIZE = 23.5;
+export const DEFAULT_TILE_SIZE = 24;
 export const FIELD_INCHES = 141.5;
 
 export interface CoordinateSettings {

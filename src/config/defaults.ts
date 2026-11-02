@@ -5,6 +5,7 @@ import type {
   Settings,
   BasePoint,
 } from "../types";
+import { DEFAULT_TILE_SIZE } from "../utils/coordinates";
 import { makePathId } from "../utils/ids";
 
 /**
@@ -63,7 +64,7 @@ export const FIELD_SCHEME_IMAGES: Record<
 export const DEFAULT_SETTINGS: Settings = {
   coordinateSystem: "pedro",
   distanceUnit: "inches",
-  tileSize: 23.5,
+  tileSize: DEFAULT_TILE_SIZE,
   forwardVelocity: 75,
   strafeVelocity: 65,
   aVelocity: Math.PI,

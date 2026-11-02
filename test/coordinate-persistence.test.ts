@@ -93,7 +93,7 @@ describe("fork project compatibility", () => {
     ).toEqual({
       coordinateSystem: "pedro",
       distanceUnit: "inches",
-      tileSize: 23.5,
+      tileSize: 24,
     });
   });
 
@@ -102,7 +102,7 @@ describe("fork project compatibility", () => {
     const line = doc.lines[0];
     if (line.kind !== "atomic") throw Error("Expected atomic path");
     const paths = [
-      { ...line, controlPoints: [], throughPoints: [{ x: 70.75, y: 47.25 }] },
+      { ...line, controlPoints: [], throughPoints: [{ x: 70.75, y: 46.75 }] },
     ];
     const before = structuredClone(paths);
     const java = await generateJavaCode(doc.startPoint, paths);

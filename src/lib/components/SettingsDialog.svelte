@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { normalizeCoordinateSettings } from "../../utils/coordinates";
+  import {
+    DEFAULT_TILE_SIZE,
+    normalizeCoordinateSettings,
+  } from "../../utils/coordinates";
   import { X } from "@lucide/svelte";
   import Modal from "./ui/Modal.svelte";
   import Button from "./ui/Button.svelte";
@@ -141,7 +144,7 @@
         <NumberField
           id="tile-size"
           label="Inches per tile"
-          value={prefs.tileSize ?? 23.5}
+          value={prefs.tileSize ?? DEFAULT_TILE_SIZE}
           min={0.001}
           step={0.125}
           onInput={(raw) => {

@@ -33,7 +33,7 @@ describe("coordinate frames", () => {
   });
 
   it("centers FTC frames and gives them opposite X directions", () => {
-    const point = { x: 70.75, y: 47.25 };
+    const point = { x: 70.75, y: 46.75 };
     expect(
       toDisplay(point, { coordinateSystem: "ftc", distanceUnit: "tiles" }),
     ).toEqual({ x: 1, y: 0 });
@@ -79,20 +79,20 @@ describe("coordinate frames", () => {
       2,
       { coordinateSystem: "ftc", distanceUnit: "tiles" },
     );
-    expect(result).toEqual({ x: 70.75, y: 23.75, locked: true });
+    expect(result).toEqual({ x: 70.75, y: 22.75, locked: true });
     expect(editCoordinate(result, "y", NaN, {})).toBe(result);
   });
 
   it("changes only the unit representation when tile size changes", () => {
-    const point = { x: 47, y: 23.5 };
+    const point = { x: 48, y: 24 };
     expect(toDisplay(point, { distanceUnit: "tiles" })).toEqual({ x: 2, y: 1 });
-    expect(toDisplay(point, { distanceUnit: "tiles", tileSize: 47 })).toEqual({
+    expect(toDisplay(point, { distanceUnit: "tiles", tileSize: 48 })).toEqual({
       x: 1,
       y: 0.5,
     });
-    expect(point).toEqual({ x: 47, y: 23.5 });
+    expect(point).toEqual({ x: 48, y: 24 });
     for (const tileSize of [0, -2, NaN, Infinity])
-      expect(inchesPerUnit({ distanceUnit: "tiles", tileSize })).toBe(23.5);
+      expect(inchesPerUnit({ distanceUnit: "tiles", tileSize })).toBe(24);
   });
 
   it("snaps on the centered tile grid and clamps at field edges", () => {
@@ -106,8 +106,8 @@ describe("coordinate frames", () => {
       gridSize: gridSpacing(12, settings),
       origin: gridOrigin(settings),
     };
-    expect(options.gridSize).toBe(11.75);
-    expect(snapPointToGrid(72, 83, options)).toEqual({ x: 70.75, y: 82.5 });
+    expect(options.gridSize).toBe(12);
+    expect(snapPointToGrid(72, 83, options)).toEqual({ x: 70.75, y: 82.75 });
     expect(snapPointToGrid(-10, 155, options)).toEqual({ x: 0, y: 141.5 });
     expect(snapPointToGrid(72, 83, { ...options, snapToGrid: false })).toEqual({
       x: 72,
@@ -116,14 +116,14 @@ describe("coordinate frames", () => {
   });
 
   it("exports selected coordinate units without changing stored geometry", () => {
-    const start = { x: 70.75, y: 47.25, headingDeg: -90 };
+    const start = { x: 70.75, y: 46.75, headingDeg: -90 };
     expect(
       generatePointsArray(start, [], {
         coordinateSystem: "ftc",
         distanceUnit: "tiles",
       }),
     ).toBe("[(1.0, 0.0)]");
-    expect(generatePointsArray(start, [])).toBe("[(70.750, 47.250)]");
+    expect(generatePointsArray(start, [])).toBe("[(70.750, 46.750)]");
     expect(start.headingDeg).toBe(-90);
   });
 

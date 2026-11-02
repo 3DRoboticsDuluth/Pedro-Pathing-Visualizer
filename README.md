@@ -27,7 +27,7 @@ Open **Settings → Coordinates and Units**. Select Pedro, FTC, or FTC Inverted,
 
 Headings are counterclockwise-positive degrees. Choose the frame appropriate to your field orientation; the visualizer does not infer alliance or season orientation.
 
-**Inches per Tile defaults to 23.5 and is editable.** This is the seam-center spacing, not a claim that six tiles span the full outside field boundary. The field remains 141.5 inches square, with its center at 70.75 inches. Adjust tile size after measuring your field if necessary.
+**Inches per Tile defaults to 24 and is editable.** FIRST describes FTC tiles as nominally approximately 24 × 24 inches; this is not a guarantee of exact seam-to-seam spacing. Tile sizes vary, so measure your assembled field and adjust this value if needed. Previously saved tile-size preferences are preserved. The visualizer retains its 141.5-inch field model, centered at 70.75 inches; tile units do not redefine the field boundary. See [FIRST Competition Manual §9.2](https://ftc-resources.firstinspires.org/ftc/archive/2027/game/manual-09) and [Field Setup Guide §7.2](https://ftc-resources.firstinspires.org/ftc/field/eventfieldguide).
 
 Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame, units, or tile size changes the displayed numbers, never the existing physical path. Saved `.pp.json` projects retain these preferences alongside canonical Pedro-inch geometry.
 
@@ -51,6 +51,6 @@ pnpm test:e2e
 pnpm dev
 ```
 
-Regression tests cover all frame/unit round trips, custom tile sizes, heading conversion, point editing, centered snapping, export, and project persistence. A useful manual check is an FTC path from `(0, 0)` to `(1, 0)` in tiles: it should extend downward by 23.5 inches. Switching to Pedro/inches should show `(70.75, 70.75)` to `(70.75, 47.25)` without moving that path.
+Regression tests cover all frame/unit round trips, custom tile sizes, heading conversion, point editing, centered snapping, export, and project persistence. A useful manual check is an FTC path from `(0, 0)` to `(1, 0)` in tiles: it should extend downward by 24 inches with the default tile size. Switching to Pedro/inches should show `(70.75, 70.75)` to `(70.75, 46.75)` without moving that path.
 
 Upstream: [Pedro-Pathing/Visualizer](https://github.com/Pedro-Pathing/Visualizer). Existing upstream licensing is retained.
