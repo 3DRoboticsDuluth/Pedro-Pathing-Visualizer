@@ -4,13 +4,15 @@ This 3D Robotics Duluth fork adds selectable coordinate frames and tile units to
 
 **[Open the Hosted Visualizer](https://3droboticsduluth.github.io/Visualizer/)**
 
+Based on upstream v2.5 (`e61fdf8`, October 27, 2026), including its new project model, collision detection, BioBuzz fields, and automated regression suite. Fork projects use schema 2.1.0 to retain coordinate preferences; existing `.pp` / 1.5.0 files migrate on load.
+
 ## Hosting
 
 GitHub Actions tests, type-checks, builds, and publishes `main` to GitHub Pages.
 Pull requests run verification without deploying. Repository Settings → Pages
 must use **GitHub Actions** as its source. No hosting credentials are required.
 Assets and the offline cache are scoped to the application path so this also
-works locally or on a custom domain. Each deployment versions its offline cache;
+works locally or on a custom domain. Built assets use content hashes and each deployment versions its application-scoped offline cache;
 close older open tabs and reopen the site if an installed copy has not updated.
 
 ## Plan in FTC Coordinates
@@ -27,7 +29,7 @@ Headings are counterclockwise-positive degrees. Choose the frame appropriate to 
 
 **Inches per Tile defaults to 23.5 and is editable.** This is the seam-center spacing, not a claim that six tiles span the full outside field boundary. The field remains 141.5 inches square, with its center at 70.75 inches. Adjust tile size after measuring your field if necessary.
 
-Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame, units, or tile size changes the displayed numbers, never the existing physical path. Saved `.pp` projects retain these preferences alongside canonical Pedro-inch geometry.
+Point editors, heading editors, robot position, grid/snapping, ruler, and path length follow the selected frame or units as applicable. Robot dimensions and motion-parameter settings remain in inches. Switching frame, units, or tile size changes the displayed numbers, never the existing physical path. Saved `.pp.json` projects retain these preferences alongside canonical Pedro-inch geometry.
 
 ## Export Safely
 
@@ -37,13 +39,15 @@ The centered frames use half this visualizer's 141.5-inch field, not the 72-inch
 
 ## Develop and Verify
 
-Use a current Node.js release compatible with Vite (validated with Node 24) and pnpm.
+Use a current Node.js release compatible with Vite (validated with Node 24) and pnpm (the pinned version is recorded in `package.json`).
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm test
 pnpm check
+pnpm lint
 pnpm build
+pnpm test:e2e
 pnpm dev
 ```
 

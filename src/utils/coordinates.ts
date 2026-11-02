@@ -113,3 +113,25 @@ export function formatPoint(
   const value = toDisplay(point, settings);
   return `${Number(value.x.toFixed(3))}, ${Number(value.y.toFixed(3))}`;
 }
+
+/** Validate display preferences at file and browser-storage boundaries. */
+export function normalizeCoordinateSettings(
+  value: unknown,
+): Required<CoordinateSettings> {
+  const input =
+    value && typeof value === "object" ? (value as CoordinateSettings) : {};
+  return {
+    coordinateSystem:
+      input.coordinateSystem === "ftc" ||
+      input.coordinateSystem === "ftc-inverted"
+        ? input.coordinateSystem
+        : "pedro",
+    distanceUnit: input.distanceUnit === "tiles" ? "tiles" : "inches",
+    tileSize:
+      typeof input.tileSize === "number" &&
+      Number.isFinite(input.tileSize) &&
+      input.tileSize > 0
+        ? input.tileSize
+        : DEFAULT_TILE_SIZE,
+  };
+}

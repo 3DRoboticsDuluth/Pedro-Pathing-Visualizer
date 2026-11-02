@@ -26,7 +26,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm check
+      - run: pnpm lint
       - run: pnpm build
+      - run: pnpm test:e2e
       - name: Version offline cache for this deployment
         run: sed -i "s/const VERSION = .*/const VERSION = '${{ github.sha }}';/" dist/sw.js
       - uses: actions/upload-pages-artifact@v3

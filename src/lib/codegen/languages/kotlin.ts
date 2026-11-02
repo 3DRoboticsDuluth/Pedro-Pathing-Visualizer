@@ -3,11 +3,13 @@ import { PEDRO_API } from "../pedroApi";
 import type { ClassKind, ImportNeeds, LanguageSpec } from "./spec";
 
 const PATHS_IMPORTS = `import com.pedropathing.api.Paths.*
+import com.pedropathing.api.Paths
 import com.pedropathing.api.PoseFactory
 import com.pedropathing.math.Pose
 import com.pedropathing.paths.Path`;
 
 const OPMODE_IMPORTS = `import com.pedropathing.api.Paths.*
+import com.pedropathing.api.Paths
 import com.pedropathing.api.PoseFactory
 import com.pedropathing.follower.Follower
 import com.pedropathing.math.Pose
@@ -23,8 +25,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode`;
 
 export const kotlinSpec: LanguageSpec = {
   id: "kotlin",
-
-  prettier: { parser: "kotlin", pluginSpecifier: "prettier-plugin-kotlin" },
 
   terminator: "",
 

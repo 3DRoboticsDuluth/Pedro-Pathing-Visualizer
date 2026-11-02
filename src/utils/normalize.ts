@@ -1,5 +1,7 @@
 import type {
+  BasePoint,
   ControlPoint,
+  FieldPoint,
   Heading,
   HeadingType,
   AtomicPath,
@@ -8,13 +10,14 @@ import type {
   PiecewiseHeadingInterpolation,
   Point,
   SequenceItem,
+  Shape,
   StartPose,
 } from "../types";
 import { getRandomColor } from "./color";
 import { headingAngleAt } from "./headingInterpolation";
 import { atomicSegments } from "./pathTraversal";
 
-import { makePathId } from "./ids";
+import { makePathId, makeShapeId } from "./ids";
 
 export { makePathId };
 
@@ -59,6 +62,7 @@ export type StoredPath = StoredCommon & {
   kind?: "atomic" | "compound";
   endPoint?: LegacyPoint;
   controlPoints?: ControlPoint[];
+  throughPoints?: BasePoint[];
   segments?: StoredPath[];
 };
 
@@ -192,16 +196,92 @@ export function normalizePaths(input: StoredPath[] = []): Path[] {
         locked: path.endPoint?.locked,
       },
       controlPoints: path.controlPoints || [],
+      throughPoints: path.throughPoints?.map((point) => ({
+        x: Number(point.x) || 0,
+        y: Number(point.y) || 0,
+        locked: point.locked,
+      })),
       heading: normalizeHeading(path),
     };
   });
 }
 
+/** Obstacles with a vertex list, each with an id no other obstacle shares. */
+export function normalizeShapes(input: unknown): Shape[] {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<string>();
+  return input
+    .filter((shape): shape is Shape => Array.isArray(shape?.vertices))
+    .map((shape) => {
+      const id =
+        typeof shape.id === "string" && !seen.has(shape.id)
+          ? shape.id
+          : makeShapeId();
+      seen.add(id);
+      return id === shape.id ? shape : { ...shape, id };
+    });
+}
+
+function toFieldPoint(value: unknown): FieldPoint | null {
+  if (!value) return null;
+
+  if (Array.isArray(value)) {
+    const [x, y, color, radius, opacity] = value;
+    if (typeof x !== "number" || typeof y !== "number") return null;
+    const point: FieldPoint = { x, y };
+    if (typeof color === "string") point.color = color;
+    if (typeof radius === "number") point.radius = radius;
+    if (typeof opacity === "number") point.opacity = opacity;
+    return point;
+  }
+
+  if (typeof value === "object") {
+    const candidate = value as Partial<FieldPoint> & {
+      x?: unknown;
+      y?: unknown;
+      color?: unknown;
+      radius?: unknown;
+      opacity?: unknown;
+    };
+
+    if (typeof candidate.x !== "number" || typeof candidate.y !== "number") {
+      return null;
+    }
+
+    const point: FieldPoint = { x: candidate.x, y: candidate.y };
+    if (typeof candidate.color === "string") point.color = candidate.color;
+    if (typeof candidate.radius === "number") point.radius = candidate.radius;
+    if (typeof candidate.opacity === "number")
+      point.opacity = candidate.opacity;
+    return point;
+  }
+
+  return null;
+}
+
+export function normalizeFieldPoints(input: unknown): FieldPoint[] {
+  const container = input as {
+    fieldPoints?: unknown;
+    points?: unknown;
+    dots?: unknown;
+  } | null;
+  const rawPoints = Array.isArray(input)
+    ? input
+    : input && typeof input === "object"
+      ? (container?.fieldPoints ?? container?.points ?? container?.dots ?? [])
+      : [];
+
+  if (!Array.isArray(rawPoints)) return [];
+  return rawPoints
+    .map(toFieldPoint)
+    .filter((point): point is FieldPoint => Boolean(point));
+}
+
 export function deriveSequence(
-  data: any,
+  data: { sequence?: unknown },
   normalizedLines: Path[],
 ): SequenceItem[] {
-  if (Array.isArray(data?.sequence) && data.sequence.length) {
+  if (Array.isArray(data.sequence) && data.sequence.length) {
     return data.sequence as SequenceItem[];
   }
 

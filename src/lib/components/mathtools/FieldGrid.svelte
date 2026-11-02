@@ -1,41 +1,38 @@
 <script lang="ts">
   import { coordinateSettings } from "../../../stores";
   import {
-    toDisplay,
     gridOrigin,
     gridSpacing,
+    toDisplay,
     unitLabel,
   } from "../../../utils/coordinates";
   import { gridSize } from "../../../stores";
-  import { FIELD_SIZE } from "../../../config";
-  import type * as d3 from "d3";
+  import { FIELD_SEAM_COLOR, FIELD_SIZE } from "../../../config";
+  import type { Axis } from "../../../view/viewport";
 
   interface Props {
-    x: d3.ScaleLinear<number, number>;
-    y: d3.ScaleLinear<number, number>;
+    x: Axis;
+    y: Axis;
   }
 
   let { x, y }: Props = $props();
 
   let spacing = $derived(
-    Math.max(0.5, gridSpacing($gridSize || 12, $coordinateSettings)),
+    Math.max(0.1, gridSpacing($gridSize || 12, $coordinateSettings)),
   );
+  let origin = $derived(gridOrigin($coordinateSettings));
 
+  // Display frames set the grid origin; geometry remains in Pedro inches.
   let gridPositions = $derived(
     (() => {
-      const positions: number[] = [0];
-      const origin = gridOrigin($coordinateSettings);
-      const first = origin - Math.floor(origin / spacing) * spacing;
-      for (
-        let pos = first > 0.000001 ? first : spacing;
-        pos < FIELD_SIZE;
-        pos += spacing
-      ) {
-        positions.push(Number(pos.toFixed(6)));
+      const positions = [0];
+      const first = Math.ceil(-origin / spacing);
+      for (let k = first; ; k++) {
+        const pos = Number((k * spacing + origin).toFixed(6));
+        if (pos >= FIELD_SIZE) break;
+        if (pos > 0) positions.push(pos);
       }
-      if (positions[positions.length - 1] !== FIELD_SIZE) {
-        positions.push(FIELD_SIZE);
-      }
+      positions.push(FIELD_SIZE);
       return positions;
     })(),
   );
@@ -54,89 +51,76 @@
           : "text-xs",
   );
 
+  // Count from the selected origin for major lines and label frequency.
+  const lineIndex = (position: number) =>
+    Math.round((position - origin) / spacing);
+
   function showsLabel(position: number): boolean {
     return (
-      Math.abs(
-        (position - gridOrigin($coordinateSettings)) / spacing / labelInterval -
-          Math.round(
-            (position - gridOrigin($coordinateSettings)) /
-              spacing /
-              labelInterval,
-          ),
-      ) < 0.00001 ||
+      lineIndex(position) % labelInterval === 0 ||
       position === 0 ||
       position === FIELD_SIZE
     );
+  }
+
+  function formatLabel(position: number, vertical: boolean) {
+    const point = toDisplay(
+      vertical ? { x: position, y: origin } : { x: origin, y: position },
+      $coordinateSettings,
+    );
+    const swapped =
+      $coordinateSettings.coordinateSystem === "ftc" ||
+      $coordinateSettings.coordinateSystem === "ftc-inverted";
+    const axis = vertical ? (swapped ? "y" : "x") : swapped ? "x" : "y";
+    return `${axis.toUpperCase()}: ${Number(point[axis].toFixed(2))} ${unitLabel($coordinateSettings)}`;
   }
 </script>
 
 <svg class="absolute top-0 left-0 w-full h-full pointer-events-none z-20">
   <!-- Vertical grid lines -->
-  {#each gridPositions as position, i (position)}
+  {#each gridPositions as position (position)}
+    {@const major = lineIndex(position) % 2 === 0}
     <line
       x1={x(position)}
       y1={y(0)}
       x2={x(position)}
       y2={y(FIELD_SIZE)}
-      stroke={i % 2 === 0 ? "#6b7280" : "#9ca3af"}
-      stroke-width={i % 2 === 0 ? "1.5" : "0.5"}
+      stroke={major ? FIELD_SEAM_COLOR : "#9ca3af"}
+      stroke-width={major ? "1.5" : "0.5"}
       opacity="0.3"
     />
     {#if showsLabel(position)}
       <text
         x={x(position)}
         y={y(0) + 15}
-        class="fill-gray-600 dark:fill-gray-400 {labelFontSize}"
+        class="field-label {labelFontSize}"
         text-anchor="middle"
       >
-        {$coordinateSettings.coordinateSystem === "ftc" ||
-        $coordinateSettings.coordinateSystem === "ftc-inverted"
-          ? "Y"
-          : "X"}
-        {Number(
-          toDisplay({ x: position, y: 0 }, $coordinateSettings)[
-            $coordinateSettings.coordinateSystem === "ftc" ||
-            $coordinateSettings.coordinateSystem === "ftc-inverted"
-              ? "y"
-              : "x"
-          ].toFixed(2),
-        )}
-        {unitLabel($coordinateSettings)}
+        {formatLabel(position, true)}
       </text>
     {/if}
   {/each}
 
   <!-- Horizontal grid lines -->
-  {#each gridPositions as position, i (position)}
+  {#each gridPositions as position (position)}
+    {@const major = lineIndex(position) % 2 === 0}
     <line
       x1={x(0)}
       y1={y(position)}
       x2={x(FIELD_SIZE)}
       y2={y(position)}
-      stroke={i % 2 === 0 ? "#6b7280" : "#9ca3af"}
-      stroke-width={i % 2 === 0 ? "1.5" : "0.5"}
+      stroke={major ? FIELD_SEAM_COLOR : "#9ca3af"}
+      stroke-width={major ? "1.5" : "0.5"}
       opacity="0.3"
     />
     {#if showsLabel(position)}
       <text
         x={x(0) - 5}
         y={y(position) + 4}
-        class="fill-gray-600 dark:fill-gray-400 {labelFontSize}"
+        class="field-label {labelFontSize}"
         text-anchor="end"
       >
-        {$coordinateSettings.coordinateSystem === "ftc" ||
-        $coordinateSettings.coordinateSystem === "ftc-inverted"
-          ? "X"
-          : "Y"}
-        {Number(
-          toDisplay({ x: 0, y: position }, $coordinateSettings)[
-            $coordinateSettings.coordinateSystem === "ftc" ||
-            $coordinateSettings.coordinateSystem === "ftc-inverted"
-              ? "x"
-              : "y"
-          ].toFixed(2),
-        )}
-        {unitLabel($coordinateSettings)}
+        {formatLabel(position, false)}
       </text>
     {/if}
   {/each}

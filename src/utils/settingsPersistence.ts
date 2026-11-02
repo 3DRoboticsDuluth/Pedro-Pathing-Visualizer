@@ -1,3 +1,4 @@
+import { normalizeCoordinateSettings } from "./coordinates";
 import { DEFAULT_SETTINGS } from "../config/defaults";
 import type { Settings } from "../types";
 
@@ -18,8 +19,24 @@ const SETTINGS_STORAGE_KEY = "pedro_settings";
  */
 export function normalizeLegacyFieldMap(input: Settings): Settings {
   const next = { ...input };
-  // Older saved projects used a root URL that breaks project-site hosting.
-  if (next.robotImage === "/robot.png") next.robotImage = "robot.png";
+  if (next.robotImage?.startsWith("/") && !next.robotImage.startsWith("//"))
+    next.robotImage = next.robotImage.slice(1);
+
+  // Saved settings from before x/y velocity became forward/strafe.
+  const legacy = next as Settings & {
+    xVelocity?: number;
+    yVelocity?: number;
+    maxVelocity?: number;
+  };
+  if (legacy.xVelocity !== undefined) {
+    next.forwardVelocity = legacy.xVelocity;
+  }
+  if (legacy.yVelocity !== undefined) {
+    next.strafeVelocity = legacy.yVelocity;
+  }
+  delete legacy.xVelocity;
+  delete legacy.yVelocity;
+  delete legacy.maxVelocity;
 
   if (
     typeof next.fieldMap === "string" &&
@@ -36,7 +53,7 @@ export function normalizeLegacyFieldMap(input: Settings): Settings {
     next.fieldMap = DEFAULT_SETTINGS.fieldMap;
   }
 
-  return next;
+  return { ...next, ...normalizeCoordinateSettings(next) };
 }
 
 function migrateSettings(stored: Partial<StoredSettings>): Settings {
@@ -73,7 +90,7 @@ export async function loadSettings(): Promise<Settings> {
       // Optionally handle migration here
     }
     return migrateSettings(stored);
-  } catch (error) {
+  } catch {
     return { ...DEFAULT_SETTINGS };
   }
 }
@@ -88,7 +105,7 @@ export async function saveSettings(settings: Settings): Promise<boolean> {
     };
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(stored));
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
