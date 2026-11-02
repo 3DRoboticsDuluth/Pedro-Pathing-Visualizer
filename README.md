@@ -17,7 +17,7 @@ close older open tabs and reopen the site if an installed copy has not updated.
 
 ## Plan in FTC Coordinates
 
-Open **Settings → Advanced → Coordinates and Units**. Select Pedro, FTC, or FTC Inverted, then Inches or Tiles. The field image remains fixed:
+Open **Settings → Coordinates and Units**. Select Pedro, FTC, or FTC Inverted, then Inches or Tiles. The field image remains fixed:
 
 | Frame        | Origin      | Positive X | Positive Y | Zero Heading |
 | ------------ | ----------- | ---------- | ---------- | ------------ |

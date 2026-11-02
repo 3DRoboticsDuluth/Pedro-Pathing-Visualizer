@@ -119,7 +119,46 @@
       them in the inspector.
     </p>
 
-    <PanelSection title="Display">
+    <PanelSection title="Coordinates and Units" open={true}>
+      <div class="flex flex-col gap-3 px-1">
+        <label class="flex flex-col gap-1">
+          <span class={labelClass}>Coordinate frame</span>
+          <select class={fieldClass} bind:value={prefs.coordinateSystem}>
+            <option value="pedro">Pedro (bottom-left, X right, Y up)</option>
+            <option value="ftc">FTC (center, X down, Y right)</option>
+            <option value="ftc-inverted"
+              >FTC Inverted (center, X up, Y left)</option
+            >
+          </select>
+        </label>
+        <label class="flex flex-col gap-1">
+          <span class={labelClass}>Distance units</span>
+          <select class={fieldClass} bind:value={prefs.distanceUnit}>
+            <option value="inches">Inches</option>
+            <option value="tiles">Tiles</option>
+          </select>
+        </label>
+        <NumberField
+          id="tile-size"
+          label="Inches per tile"
+          value={prefs.tileSize ?? 23.5}
+          min={0.001}
+          step={0.125}
+          onInput={(raw) => {
+            prefs.tileSize = normalizeCoordinateSettings({
+              tileSize: Number(raw),
+            }).tileSize;
+          }}
+        />
+        <p class="text-xs text-body">
+          Changes the displayed frame and units without moving paths. Robot
+          dimensions and motion settings remain in inches. Java and Kotlin
+          exports always use Pedro coordinates and inches.
+        </p>
+      </div>
+    </PanelSection>
+
+    <PanelSection title="Display" open={false}>
       <div class="flex flex-col gap-3 px-1">
         <div class="flex flex-col gap-1">
           <span class={labelClass}>Theme</span>
@@ -351,45 +390,6 @@
           onInput={(raw) => setNumber("curveThroughMaxPoints", raw)}
         />
       </div>
-
-      <PanelSection title="Coordinates and Units">
-        <div class="flex flex-col gap-3 px-1">
-          <label class="flex flex-col gap-1">
-            <span class={labelClass}>Coordinate frame</span>
-            <select class={fieldClass} bind:value={prefs.coordinateSystem}>
-              <option value="pedro">Pedro (bottom-left, X right, Y up)</option>
-              <option value="ftc">FTC (center, X down, Y right)</option>
-              <option value="ftc-inverted"
-                >FTC Inverted (center, X up, Y left)</option
-              >
-            </select>
-          </label>
-          <label class="flex flex-col gap-1">
-            <span class={labelClass}>Distance units</span>
-            <select class={fieldClass} bind:value={prefs.distanceUnit}>
-              <option value="inches">Inches</option>
-              <option value="tiles">Tiles</option>
-            </select>
-          </label>
-          <NumberField
-            id="tile-size"
-            label="Inches per tile"
-            value={prefs.tileSize ?? 23.5}
-            min={0.001}
-            step={0.125}
-            onInput={(raw) => {
-              prefs.tileSize = normalizeCoordinateSettings({
-                tileSize: Number(raw),
-              }).tileSize;
-            }}
-          />
-          <p class="text-xs text-body">
-            Changes the displayed frame and units without moving paths. Robot
-            dimensions and motion settings remain in inches. Java and Kotlin
-            exports always use Pedro coordinates and inches.
-          </p>
-        </div>
-      </PanelSection>
     </PanelSection>
 
     <PanelSection title="Experimental" open={false}>
