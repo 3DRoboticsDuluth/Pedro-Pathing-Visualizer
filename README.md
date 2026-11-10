@@ -2,7 +2,7 @@
 
 This 3D Robotics Duluth fork adds selectable coordinate frames and tile units to the upstream Pedro Pathing Visualizer.
 
-**[Open the Hosted Visualizer](https://3droboticsduluth.github.io/Visualizer/)**
+**[Open the Hosted Visualizer](https://3droboticsduluth.github.io/Pedro-Pathing-Visualizer/)**
 
 Based on upstream v2.5 (`e61fdf8`, October 27, 2026), including its new project model, collision detection, BioBuzz fields, and automated regression suite. Fork projects use schema 2.2.0 to retain coordinate preferences and calibrated built-in obstacles; existing `.pp` / 1.5.0 files migrate on load.
 
